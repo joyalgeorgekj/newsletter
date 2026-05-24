@@ -11,19 +11,17 @@ import isEmail from "validator/lib/isEmail";
 const app = express();
 
 app.use(express.json());
-
 app.use(cors());
-
 app.use(helmet());
 
 connectDB();
-
 const subscribers = db.collection("subscribers");
 
 app.get("/health", (_, res) => {
+    console.log("Health checking");
+
     return res.json({
         status: "ok",
-
         uptime: process.uptime(),
     });
 });
@@ -77,7 +75,7 @@ app.post("/subscribe", async (req, res) => {
             );
         }
 
-        const verifyLink = `${process.env.FRONTEND_URL}/verify/${token}`;
+        const verifyLink = `${process.env.BASE_URL}/subscribe/${token}`;
 
         const { error } = await resend.emails.send({
             from: process.env.MAIL_FROM!,
