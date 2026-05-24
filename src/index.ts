@@ -7,12 +7,24 @@ import { connectDB, db } from "./lib/db";
 import { generateToken } from "./lib/jwt";
 import { resend } from "./lib/resend";
 import isEmail from "validator/lib/isEmail";
+import { newsletterLimiter } from "./utils/rateLimit";
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
+app.use(
+    ["/subscribe", "/subscribe/:token", "/unsubscribe", "/unsubscribe/:token"],
+    newsletterLimiter,
+);
+app.use(
+    express.json({
+        limit: "10kb",
+    })
+);
 
 connectDB();
 const subscribers = db.collection("subscribers");
@@ -198,8 +210,7 @@ app.post("/unsubscribe", async (req, res) => {
         if (!user) {
             return res.json({
                 success: true,
-                message:
-                    "User don't exist",
+                message: "User don't exist",
             });
         }
 
